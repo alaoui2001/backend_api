@@ -43,7 +43,8 @@ connection.connect((err) => {
         CREATE TABLE IF NOT EXISTS batteries (
             id INT AUTO_INCREMENT PRIMARY KEY,
             model VARCHAR(255),
-            capacity INT,
+            capacity FLoat,
+            capacityMax float,
             voltage FLOAT,
             etat VARCHAR(255),
             network_seller INT, -- Assuming it's a foreign key referencing NetworkPublic
