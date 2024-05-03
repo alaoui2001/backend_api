@@ -29,6 +29,19 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+router.get('/', async (req, res) => {
+    try {
+        
+        const network = await NetworkPublicDAO.getAllNetworks();
+        if (network) {
+            res.status(200).json(network);
+        } else {
+            res.status(404).json({ message: 'Public network not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // Update an existing public network
 router.put('/:id', async (req, res) => {

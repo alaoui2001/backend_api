@@ -21,11 +21,14 @@ connection.connect((err) => {
             etat VARCHAR(255),
             marque VARCHAR(255),
             model VARCHAR(255),
-            capacity INT,
+            capacity FLOAT,
             efficiency FLOAT,
             width FLOAT,
             height FLOAT,
-            installationDate DATE
+            installationDate DATE,
+            battrie_id INT, -- Foreign key referencing Battrie
+            FOREIGN KEY (battrie_id) REFERENCES batteries(id),
+            UNIQUE (battrie_id)
         )
     `;
     const createUserTableQuery = `
@@ -46,11 +49,8 @@ connection.connect((err) => {
             capacity FLoat,
             capacityMax float,
             voltage FLOAT,
-            etat VARCHAR(255),
-            network_seller INT, -- Assuming it's a foreign key referencing NetworkPublic
-            network_buyer INT, -- Assuming it's a foreign key referencing NetworkPublic
-            FOREIGN KEY (network_seller) REFERENCES network_public(id),
-            FOREIGN KEY (network_buyer) REFERENCES network_public(id)
+            etat VARCHAR(255)
+           
         )
     `;
 
@@ -58,11 +58,10 @@ connection.connect((err) => {
         CREATE TABLE IF NOT EXISTS productions (
             id INT AUTO_INCREMENT PRIMARY KEY,
             productionDate DATE,
-            quantity INT,
-            battrie_id INT, -- Foreign key referencing Battrie
-            solarPanel_id INT, -- Foreign key referencing SolarPanel
-            FOREIGN KEY (battrie_id) REFERENCES batteries(id),
-            FOREIGN KEY (solarPanel_id) REFERENCES solar_panels(id)
+            quantity float,
+          
+            solarPanel_id INT,
+            FOREIGN KEY(solarPanel_id) REFERENCES solar_panels(id)
         )
     `;
 
@@ -71,11 +70,13 @@ connection.connect((err) => {
             id INT AUTO_INCREMENT PRIMARY KEY,
             
             consommationDate DATE,
-            quantity INT,
+            quantity float,
             battrie_id INT, -- Foreign key referencing Battrie
             solarPanel_id INT, -- Foreign key referencing SolarPanel
             FOREIGN KEY (battrie_id) REFERENCES batteries(id),
-            FOREIGN KEY (solarPanel_id) REFERENCES solar_panels(id)
+            FOREIGN KEY (solarPanel_id) REFERENCES solar_panels(id),
+            UNIQUE (battrie_id,consommationDate),
+            UNIQUE (solarPanel_id,consommationDate)
         )
     `;
 
@@ -85,6 +86,28 @@ connection.connect((err) => {
             name VARCHAR(255)
         )
     `;
+    const createEnergiesTableQuery = `
+    CREATE TABLE IF NOT EXISTS energies (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+         quantity float ,
+         battrie_id INT, -- Foreign key referencing Battrie
+         solarPanel_id INT, -- Foreign key referencing SolarPanel
+         FOREIGN KEY (battrie_id) REFERENCES batteries(id),
+         FOREIGN KEY (solarPanel_id) REFERENCES solar_panels(id),
+         transaction_id int,
+         FOREIGN KEY (transaction_id) REFERENCES transactions(id)
+    )
+`;
+    const createTransactionsTableQuery = `
+    CREATE TABLE IF NOT EXISTS transactions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        price Float,
+        transactionDate DATE,
+        network_id int,
+        type varchar(255), -- type selling or buying
+        FOREIGN KEY (network_id) REFERENCES network_public(id)
+    )
+`;
 
     // Execute queries to create tables
     connection.query(createUserTableQuery, (err, result) => {
@@ -95,16 +118,17 @@ connection.connect((err) => {
         if (err) throw err;
         console.log('NetworkPublic table created');
     });
-    connection.query(createSolarPanelTableQuery, (err, result) => {
-        if (err) throw err;
-        console.log('SolarPanel table created');
-    });
-
     connection.query(createBattrieTableQuery, (err, result) => {
         if (err) throw err;
         console.log('Battrie table created');
     });
 
+    connection.query(createSolarPanelTableQuery, (err, result) => {
+        if (err) throw err;
+        console.log('SolarPanel table created');
+    });
+
+   
     connection.query(createProductionTableQuery, (err, result) => {
         if (err) throw err;
         console.log('Production table created');
@@ -114,8 +138,14 @@ connection.connect((err) => {
         if (err) throw err;
         console.log('Consommation table created');
     });
-
-    
+    connection.query(createTransactionsTableQuery, (err, result) => {
+        if (err) throw err;
+        console.log('transaction table created');
+    });
+    connection.query(createEnergiesTableQuery, (err, result) => {
+        if (err) throw err;
+        console.log('energie table created');
+    });
 
     // Close the MySQL connection
     connection.end((err) => {

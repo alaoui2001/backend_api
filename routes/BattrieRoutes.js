@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const BattrieDAO = require('../models/Battrie/BattrieDAO');
 const NetworkPublic = require('../models/NetworkPublic/NetworkPublic');
-
+const Battrie =require('../models/Battrie/Battrie');
 // Create a new battery
 router.post('/', async (req, res) => {
     try {
-        const { model, capacity, voltage, etat, network } = req.body;
-        const networkObject = network ? new NetworkPublic(network.id, network.name) : null;
-        const newBattrie = new Battrie(null, model, capacity, voltage, etat, networkObject);
+        const { model, capacity, voltage, etat, capacityMax } = req.body;
+        
+        const newBattrie = new Battrie(null, model, capacity, voltage, etat, capacityMax);
         const newBattrieId = await BattrieDAO.createBattrie(newBattrie);
         res.status(201).json({ id: newBattrieId });
     } catch (err) {

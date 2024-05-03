@@ -1,35 +1,34 @@
 const db = require('../../config/connection');
-const SolarPanel = require('./SolarPanel');
-const Production = require('../Production/Production');
-const ProductionDAO = require('../Production/ProductionDAO');
+const SolarPanel = require('../SolarPanel/SolarPanel');
+const BattrieDAO = require('../Battrie/BattrieDAO');
 
 class SolarPanelDAO {
-    static async getSolarPanelById(id) {
+    static getSolarPanelById(id) {
         return new Promise((resolve, reject) => {
-            db.query('SELECT * FROM solar_panels WHERE id = ?', [id], async (err, results) => {
+            const query = 'SELECT * FROM solar_panels WHERE id = ?';
+            db.query(query, [id], (err, results) => {
                 if (err) {
                     reject(err);
                 } else {
                     if (results.length > 0) {
                         const solarPanelData = results[0];
-                        const solarPanel = new SolarPanel(
-                            solarPanelData.id,
-                            solarPanelData.model,
-                            solarPanelData.capacity,
-                            solarPanelData.voltage,
-                            solarPanelData.etat,
-                            solarPanelData.owner,
-                            solarPanelData.name,
-                            solarPanelData.manufacturer,
-                            solarPanelData.efficiency,
-                            solarPanelData.width,
-                            solarPanelData.height,
-                            solarPanelData.installation_date
-                        );
-                        // Fetch associated productions
-                        const productions = await ProductionDAO.getProductionsBySolarId(solarPanel.id);
-                        solarPanel.productions = productions;
-                        resolve(solarPanel);
+                        BattrieDAO.getBattrieById(solarPanelData.battrie_id)
+                            .then(battrie => {
+                                const solarPanel = new SolarPanel(
+                                    solarPanelData.id,
+                                    solarPanelData.etat,
+                                    solarPanelData.marque,
+                                    solarPanelData.model,
+                                    solarPanelData.capacity,
+                                    solarPanelData.efficiency,
+                                    solarPanelData.width,
+                                    solarPanelData.height,
+                                    solarPanelData.installationDate,
+                                    battrie
+                                );
+                                resolve(solarPanel);
+                            })
+                            .catch(err => reject(err));
                     } else {
                         resolve(null);
                     }
@@ -38,69 +37,89 @@ class SolarPanelDAO {
         });
     }
 
-   static async getAllSolarPanels() {
+    static getAllSolarPanels() {
         return new Promise((resolve, reject) => {
             const query = 'SELECT * FROM solar_panels';
             db.query(query, (err, results) => {
                 if (err) {
-                    console.error('Error fetching solar panels:', err);
                     reject(err);
                 } else {
-                    resolve(results);
+                    const solarPanels = [];
+                    const promises = results.map(panel => {
+                        return new Promise((res, rej) => {
+                            BattrieDAO.getBattrieById(panel.battrie_id)
+                                .then(battrie => {
+                                    const solarPanel = new SolarPanel(
+                                        panel.id,
+                                        panel.etat,
+                                        panel.marque,
+                                        panel.model,
+                                        panel.capacity,
+                                        panel.efficiency,
+                                        panel.width,
+                                        panel.height,
+                                        panel.installationDate,
+                                        battrie
+                                    );
+                                    solarPanels.push(solarPanel);
+                                    res();
+                                })
+                                .catch(err => rej(err));
+                        });
+                    });
+                    Promise.all(promises)
+                        .then(() => resolve(solarPanels))
+                        .catch(err => reject(err));
                 }
             });
         });
     }
 
-    static async createSolarPanel(solarPanel) {
+    static createSolarPanel(solarPanel) {
         return new Promise((resolve, reject) => {
-            const { model, capacity, voltage, etat, owner, name, manufacturer, efficiency, width, height, installationDate } = solarPanel;
-            db.query(
-                'INSERT INTO solar_panels (model, capacity, voltage, etat, owner, name, manufacturer, efficiency, width, height, installation_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [model, capacity, voltage, etat, owner, name, manufacturer, efficiency, width, height, installationDate],
-                (err, results) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(results.insertId);
-                    }
-                }
-            );
-        });
-    }
-
-    static async updateSolarPanel(solarPanel) {
-        return new Promise((resolve, reject) => {
-            const { id, model, capacity, voltage, etat, owner, name, manufacturer, efficiency, width, height, installationDate } = solarPanel;
-            db.query(
-                'UPDATE solar_panels SET model = ?, capacity = ?, voltage = ?, etat = ?, owner = ?, name = ?, manufacturer = ?, efficiency = ?, width = ?, height = ?, installation_date = ? WHERE id = ?',
-                [model, capacity, voltage, etat, owner, name, manufacturer, efficiency, width, height, installationDate, id],
-                (err, results) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(results.affectedRows > 0);
-                    }
-                }
-            );
-        });
-    }
-
-    static async deleteSolarPanel(id) {
-        return new Promise((resolve, reject) => {
-            db.query('DELETE FROM solar_panels WHERE id = ?', [id], (err, results) => {
+            const { etat, marque, model, capacity, efficiency, width, height, installationDate, battrie_id } = solarPanel;
+            const query = 'INSERT INTO solar_panels (etat, marque, model, capacity, efficiency, width, height, installationDate, battrie_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            db.query(query, [etat, marque, model, capacity, efficiency, width, height, installationDate, battrie_id], (err, result) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(results.affectedRows > 0);
+                    resolve(result.insertId);
                 }
             });
         });
     }
-    static async reportConsumptionAndProduction(solarPanelId, startDate, endDate) {
+
+    static updateSolarPanel(solarPanel) {
         return new Promise((resolve, reject) => {
-            db.query(
-                `SELECT 
+            const { id, etat, marque, model, capacity, efficiency, width, height, installationDate, battrie_id } = solarPanel;
+            const query = 'UPDATE solar_panels SET etat = ?, marque = ?, model = ?, capacity = ?, efficiency = ?, width = ?, height = ?, installationDate = ?, battrie_id = ? WHERE id = ?';
+            db.query(query, [etat, marque, model, capacity, efficiency, width, height, installationDate, battrie_id,id], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result.affectedRows > 0);
+                }
+            });
+        });
+    }
+
+    static deleteSolarPanel(id) {
+        return new Promise((resolve, reject) => {
+            const query = 'DELETE FROM solar_panels WHERE id = ?';
+            db.query(query, [id], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result.affectedRows > 0);
+                }
+            });
+        });
+    }
+
+    static reportConsumptionAndProduction(solarPanelId, startDate, endDate) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT 
                     date, 
                     SUM(CASE WHEN type = 'production' THEN value ELSE 0 END) AS totalProduction, 
                     SUM(CASE WHEN type = 'consumption' THEN value ELSE 0 END) AS totalConsumption
@@ -108,18 +127,16 @@ class SolarPanelDAO {
                     consommations
                 WHERE
                     solarPanel_id = ? AND date BETWEEN ? AND ?
-                
                 ORDER BY
-                    date`,
-                [solarPanelId, startDate, endDate],
-                (err, results) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(results);
-                    }
+                    date
+            `;
+            db.query(query, [solarPanelId, startDate, endDate], (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
                 }
-            );
+            });
         });
     }
 }

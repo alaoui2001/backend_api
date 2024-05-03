@@ -3,21 +3,65 @@ const Consommation = require('../Consommation/Consommation');
 
 class ConsommationDAO {
     static async createConsommation(consommation) {
-        return new Promise((resolve, reject) => {
-            const { consommationDate, quantity, battrieId, solarPanelId } = consommation;
-            db.query(
-                'INSERT INTO consommations (consommationDate, quantity, battrie_id, solarPanel_id) VALUES (?, ?, ?, ?)',
-                [date_consommation, quantity, battrieId, solarPanelId],
-                (err, results) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(results.insertId);
-                    }
+        return new Promise(async (resolve, reject) => {
+            const { consommationDate, quantity, battrie_id, solarPanel_id } = consommation;
+
+            let insertId = 0;
+
+            db.beginTransaction(async (err) => {
+                if (err) {
+                    reject(err);
+                    return;
                 }
-            );
+
+                try {
+                    const query = 'INSERT INTO consommations (consommationDate, quantity, battrie_id, solarPanel_id) VALUES (?, ?, ?, ?)';
+                    db.query(query, [consommationDate, quantity, battrie_id, solarPanel_id], async (err, results) => {
+                        if (err) {
+                            db.rollback(() => {
+                                reject(err);
+                            });
+                            return;
+                        }
+
+                        insertId = results.insertId;
+
+                        if (solarPanel_id) {
+                            const ProductionDAO = require('../Production/ProductionDAO');
+                            const BattrieDAO = require('../Battrie/BattrieDAO');
+                            const production = await ProductionDAO.getProductionByDateAndSolarId(consommationDate, solarPanel_id);
+                            if (production) {
+                                const newCapacity = production.quantity - quantity;
+                                const battrie = await BattrieDAO.getBattrieBySolarPanelId(solarPanel_id);
+                                const updatedBattrie = await BattrieDAO.updateBatteryCapacity(battrie.id, newCapacity);
+                                if (!updatedBattrie) {
+                                    db.rollback(() => {
+                                        reject('Failed to update battery capacity');
+                                    });
+                                    return;
+                                }
+                            }
+                        }
+
+                        db.commit((err) => {
+                            if (err) {
+                                db.rollback(() => {
+                                    reject(err);
+                                });
+                                return;
+                            }
+                            resolve(insertId);
+                        });
+                    });
+                } catch (err) {
+                    db.rollback(() => {
+                        reject(err);
+                    });
+                }
+            });
         });
     }
+    
   static  async reportConsommationByDayForBatteries() {
         return new Promise((resolve, reject) => {
             const query = `
@@ -209,8 +253,35 @@ class ConsommationDAO {
             });
         });
     }
-
-    async getSumConsumptionForSolarPanels(timeframe) {
+    static async getConsommationByDateAndSolarId(consommationDate, solarPanelId) {
+        return new Promise((resolve, reject) => {
+            db.query(
+                'SELECT * FROM consommations WHERE consommationDate = ? AND solarPanel_id = ?',
+                [consommationDate, solarPanelId],
+                (err, results) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        if (results.length > 0) {
+                            const consommationData = results[0];
+                            
+                            const consommation = new Consommation(
+                                consommationData.id,
+                                consommationData.consommationDate,
+                                consommationData.quantity,
+                                consommationData.battrie_id,
+                                consommationData.solarPanel_id
+                            );
+                            resolve(consommation);
+                        } else {
+                            resolve(null);
+                        }
+                    }
+                }
+            );
+        });
+    }
+    static async getSumConsumptionForSolarPanels(timeframe) {
         return new Promise((resolve, reject) => {
             let query;
             switch (timeframe) {

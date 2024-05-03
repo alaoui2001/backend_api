@@ -4,10 +4,10 @@ const Battrie = require('../Battrie/Battrie');
 class BattrieDAO {
     static async createBattrie(battrie) {
         return new Promise((resolve, reject) => {
-            const { model, capacity, voltage, etat, networkSeller, networkBuyer, capacityMax } = battrie;
+            const { model, capacity, voltage, etat, capacityMax } = battrie;
             db.query(
-                'INSERT INTO batteries (model, capacity, voltage, etat, network_seller, network_buyer, capacity_max) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [model, capacity, voltage, etat, networkSeller, networkBuyer, capacityMax],
+                'INSERT INTO batteries (model, capacity, voltage, etat, capacityMax) VALUES (?, ?, ?, ?, ?)',
+                [model, capacity, voltage, etat, capacityMax],
                 (err, results) => {
                     if (err) {
                         reject(err);
@@ -18,7 +18,66 @@ class BattrieDAO {
             );
         });
     }
-
+    static async getSumCapacityDifference() {
+        return new Promise((resolve, reject) => {
+            const query = `
+               SELECT 
+                       SUM(capacityMax - capacity) as totalDifference
+                FROM batteries
+                
+            `;
+            db.query(query, [], (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+    }
+    static async getSumCapacity() {
+        return new Promise((resolve, reject) => {
+            const query = `
+               SELECT 
+                       SUM(capacity) as sumCapacity
+                FROM batteries
+               
+            `;
+            db.query(query, [], (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+    }
+    
+    static getBattrieBySolarPanelId(solarPanelId) {
+        return new Promise((resolve, reject) => {
+            const query = 'SELECT * FROM batteries WHERE id=(select battrie_id from solar_panels where id = ?)';
+            db.query(query, [solarPanelId], (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    if (results.length > 0) {
+                        const battrieData = results[0];
+                        const battrie = new Battrie(
+                            battrieData.id,
+                            battrieData.model,
+                            battrieData.capacity,
+                            battrieData.capacityMax,
+                            battrieData.voltage,
+                            battrieData.etat
+                        );
+                        resolve(battrie);
+                    } else {
+                        resolve(null);
+                    }
+                }
+            });
+        });
+    }
     static async getAllBattries() {
         return new Promise((resolve, reject) => {
             const query = 'SELECT * FROM batteries';
@@ -35,9 +94,7 @@ class BattrieDAO {
                             battery.capacity,
                             battery.voltage,
                             battery.etat,
-                            battery.network_seller,
-                            battery.network_buyer,
-                            battery.capacity_max // Added capacity_max here
+                            battery.capacityMax // Added capacity_max here
                         );
                     });
                     resolve(batteries);
@@ -60,9 +117,7 @@ class BattrieDAO {
                             battrieData.capacity,
                             battrieData.voltage,
                             battrieData.etat,
-                            battrieData.network_seller,
-                            battrieData.network_buyer,
-                            battrieData.capacity_max // Added capacity_max here
+                            battrieData.capacityMax // Added capacity_max here
                         );
                         resolve(battrie);
                     } else {
@@ -75,10 +130,10 @@ class BattrieDAO {
 
     static async updateBattrie(battrie) {
         return new Promise((resolve, reject) => {
-            const { id, model, capacity, voltage, etat, networkSeller, networkBuyer, capacityMax } = battrie;
+            const { id, model, capacity, voltage, etat, capacityMax } = battrie;
             db.query(
-                'UPDATE batteries SET model = ?, capacity = ?, voltage = ?, etat = ?, network_seller = ?, network_buyer = ?, capacity_max = ? WHERE id = ?',
-                [model, capacity, voltage, etat, networkSeller, networkBuyer, capacityMax, id],
+                'UPDATE batteries SET model = ?, capacity = ?, voltage = ?, etat = ?, capacityMax = ? WHERE id = ?',
+                [model, capacity, voltage, etat, capacityMax, id],
                 (err, results) => {
                     if (err) {
                         reject(err);
@@ -101,7 +156,38 @@ class BattrieDAO {
             });
         });
     }
-
+    static async updateBatteryCapacity(battrieId, capacityAdded) {
+        return new Promise((resolve, reject) => {
+            // Fetch the current capacity and capacityMax
+            db.query('SELECT capacity, capacityMax FROM batteries WHERE id = ?', [battrieId], (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    if (results.length > 0) {
+                        const { capacity, capacityMax } = results[0];
+                        const newCapacity = capacity + capacityAdded;
+                        const updatedCapacity = newCapacity > capacityMax ? capacityMax : newCapacity;
+    
+                        // Update the battery capacity
+                        db.query(
+                            'UPDATE batteries SET capacity = ? WHERE id = ?',
+                            [updatedCapacity, battrieId],
+                            (updateErr, updateResults) => {
+                                if (updateErr) {
+                                    reject(updateErr);
+                                } else {
+                                    resolve(updateResults.affectedRows > 0);
+                                }
+                            }
+                        );
+                    } else {
+                        reject('Battery not found');
+                    }
+                }
+            });
+        });
+    }
+    
     static async reportConsumptionAndProduction(battrieId, startDate, endDate) {
         return new Promise((resolve, reject) => {
             db.query(

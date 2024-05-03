@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const SolarPanelDAO = require('../models/SolarPanel/SolarPanelDAO');
 
+
 // Get a specific solar panel by ID
 router.get('/:id', async (req, res) => {
     try {
@@ -17,7 +18,9 @@ router.get('/:id', async (req, res) => {
     }
 });
 router.get('/',async  (req, res) => {
+    
     try {
+        console.log("1")
     const solarPanels=await SolarPanelDAO.getAllSolarPanels();
     if (solarPanels) {
         res.status(200).json(solarPanels);

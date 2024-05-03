@@ -18,7 +18,24 @@ class NetworkPublicDAO {
             );
         });
     }
-
+ static async getAllNetworks() {
+        return new Promise((resolve, reject) => {
+            db.query('SELECT * FROM network_public', (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    // Map the results to NetworkPublic objects
+                    const networks = results.map(networkData => {
+                        return new NetworkPublic(
+                            networkData.id,
+                            networkData.name
+                        );
+                    });
+                    resolve(networks);
+                }
+            });
+        });
+    }
     static async getNetworkById(id) {
         return new Promise((resolve, reject) => {
             db.query('SELECT * FROM network_public WHERE id = ?', [id], (err, results) => {

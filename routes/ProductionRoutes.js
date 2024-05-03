@@ -77,34 +77,21 @@ router.get('/report/solar_panels', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-// Route to generate production report for batteries by day with optional date range
-router.get('/report/batteries', async (req, res) => {
-    const { startDate, endDate } = req.query;
 
-    try {
-        const report = await ProductionDAO.reportProductionByDayForBattriesWithRange(startDate, endDate);
-        if (report.length > 0) {
-            res.status(200).json(report);
-        } else {
-            res.status(404).json({ message: 'No production report available for batteries within the specified date range' });
-        }
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-router.get('/report/battries/:timeframe', async (req, res) => {
-    const { timeframe } = req.params;
-    try {
-        const sumProductionForAllBattries = await ProductionDAO.getSumProductionForAllBattries(timeframe);
-        res.status(200).json({ sumProductionForAllBattries });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-router.get('/report/solarpanels/:timeframe', async (req, res) => {
+
+router.get('/report/solarpanels/sum/:timeframe', async (req, res) => {
     const { timeframe } = req.params;
     try {
         const sumProductionForAllSolarPanels = await ProductionDAO.getSumProductionForAllSolarPanels(timeframe);
+        res.status(200).json({ sumProductionForAllSolarPanels });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+router.get('/report/solarpanels/avg/:timeframe', async (req, res) => {
+    const { timeframe } = req.params;
+    try {
+        const sumProductionForAllSolarPanels = await ProductionDAO.getAVGProductionForAllSolarPanels(timeframe);
         res.status(200).json({ sumProductionForAllSolarPanels });
     } catch (err) {
         res.status(500).json({ error: err.message });

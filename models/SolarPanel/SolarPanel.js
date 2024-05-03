@@ -1,14 +1,15 @@
-const EnergyDevice = require('../EnergyDevice/EnergyDevice');
-
-class SolarPanel extends EnergyDevice {
-    constructor(id, model, capacity, voltage, etat, name, manufacturer, efficiency, width, height, installationDate) {
-        super(id, model, capacity, voltage, etat);
-        this.name = name;
-        this.manufacturer = manufacturer;
-        this.efficiency = efficiency; // as a percentage
-        this.width = width; // in meters or inches
-        this.height = height; // in meters or inches
-        this.installationDate = installationDate; // Date object
+class SolarPanel {
+    constructor(id, etat, marque, model, capacity, efficiency, width, height, installationDate, battrie) {
+        this.id = id;
+        this.etat = etat;
+        this.marque = marque;
+        this.model = model;
+        this.capacity = capacity;
+        this.efficiency = efficiency;
+        this.width = width;
+        this.height = height;
+        this.installationDate = installationDate;
+        this.battrie = battrie; // Assuming battrie is an object with properties like id, model, capacityMax, etc.
     }
 }
 

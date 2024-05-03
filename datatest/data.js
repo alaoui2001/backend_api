@@ -1,119 +1,78 @@
-const mysql = require('mysql');
+const db = require('../config/connection'); // Assuming your database connection module is named 'connection'
 
-// MySQL connection settings
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root', // Replace with your MySQL username
-    password: '', // Replace with your MySQL password
-    database: 'backend_api', // Replace with your desired database name
-    port: '3306', // Default MySQL port
-});
+// Sample data for solar panels
+const solarPanelsData = [
+    { id: 1, etat: 'active', marque: 'SolarTech', model: 'ST-100', capacity: 100, efficiency: 0.85, width: 1.5, height: 2, installationDate: '2022-01-01', battrie_id: 1 },
+    { id: 2, etat: 'active', marque: 'SunPower', model: 'SP-200', capacity: 200, efficiency: 0.88, width: 1.8, height: 2.2, installationDate: '2022-02-01', battrie_id: 2 },
+    { id: 3, etat: 'active', marque: 'EcoSolar', model: 'ES-150', capacity: 150, efficiency: 0.82, width: 1.7, height: 2.1, installationDate: '2022-03-15', battrie_id: 3 },
+    { id: 4, etat: 'active', marque: 'GreenEnergy', model: 'GE-120', capacity: 120, efficiency: 0.75, width: 1.4, height: 1.8, installationDate: '2022-04-20', battrie_id: 4 },
+    { id: 5, etat: 'active', marque: 'SunBeam', model: 'SB-180', capacity: 180, efficiency: 0.90, width: 1.9, height: 2.4, installationDate: '2022-05-10', battrie_id: 5 },
+];
 
-// Connect to MySQL server
-connection.connect((err) => {
-    if (err) throw err;
-    console.log('Connected to MySQL server');
+// Sample data for batteries
+const batteriesData = [
+    { id: 1, model: 'Battery Model 1', capacity: 500, voltage: 48, etat: 'Active', capacityMax: 1000 },
+    { id: 2, model: 'Battery Model 2', capacity: 800, voltage: 48, etat: 'Active', capacityMax: 1500 },
+    { id: 3, model: 'Battery Model 3', capacity: 600, voltage: 48, etat: 'Active', capacityMax: 1200 },
+    { id: 4, model: 'Battery Model 4', capacity: 700, voltage: 48, etat: 'Active', capacityMax: 1400 },
+    { id: 5, model: 'Battery Model 5', capacity: 900, voltage: 48, etat: 'Active', capacityMax: 1800 },
+];
 
-    // Insert data into tables
-    const insertUserQuery = `
-        INSERT INTO users (firstname, lastname, email, password)
-        VALUES
-        ('John', 'Doe', 'johndoe@example.com', 'password123'),
-        ('Jane', 'Smith', 'janesmith@example.com', 'secret'),
-        ('Mike', 'Johnson', 'mikejohnson@example.com', 'pass123'),
-        ('Emily', 'Davis', 'emilydavis@example.com', 'test123')
-    
-    `;
+const transactionsData = [
+    { id: 1, price: 2000, transactionDate: '2022-01-15', type: 'Selling', network_id: 1 },
+    { id: 2, price: 1500, transactionDate: '2022-02-20', type: 'Buying', network_id: 2 },
+    { id: 3, price: 1800, transactionDate: '2022-03-10', type: 'Selling', network_id: 1 },
+    { id: 4, price: 1200, transactionDate: '2022-04-05', type: 'Buying', network_id: 2 },
+    { id: 5, price: 2500, transactionDate: '2022-05-20', type: 'Selling', network_id: 1 },
+];
 
-    const insertSolarPanelQuery = `
-        INSERT INTO solar_panels (etat, marque, model, capacity, efficiency, width, height, installationDate)
-        VALUES
-        ('Active', 'Brand A', 'Model X', 100, 0.85, 5.5, 3.2, '2022-01-10'),
-        ('Inactive', 'Brand B', 'Model Y', 150, 0.75, 6.0, 3.5, '2021-11-20'),
-        ('Active', 'Brand C', 'Model Z', 200, 0.90, 5.8, 3.0, '2023-02-15'),
-        ('Active', 'Brand D', 'Model Z', 200, 0.90, 5.8, 3.0, '2023-02-15'),
-        ('Active', 'Brand E', 'Model ZX', 200, 0.90, 5.8, 3.0, '2023-09-15'),
-        ('Active', 'Brand F', 'Model ZL', 200, 0.90, 5.8, 3.0, '2023-08-15'),
-        ('Active', 'Brand G', 'Model ZA', 200, 0.90, 5.8, 3.0, '2023-03-15'),
-        ('Active', 'Brand H', 'Model ZD', 200, 0.90, 5.8, 3.0, '2023-05-15'),
-        ('Active', 'Brand I', 'Model ZK', 200, 0.90, 5.8, 3.0, '2023-07-15')
-        -- Add more solar panels as needed
-    `;
+// Sample data for users
+const usersData = [
+    { id: 1, firstname: 'John', lastname: 'Doe', password: 'password1', email: 'john.doe@example.com' },
+    { id: 2, firstname: 'Jane', lastname: 'Smith', password: 'password2', email: 'jane.smith@example.com' },
+    { id: 3, firstname: 'Michael', lastname: 'Johnson', password: 'password3', email: 'michael.johnson@example.com' },
+    { id: 4, firstname: 'Emily', lastname: 'Brown', password: 'password4', email: 'emily.brown@example.com' },
+    { id: 5, firstname: 'William', lastname: 'Davis', password: 'password5', email: 'william.davis@example.com' },
+];
 
-    const insertBattrieQuery = `
-        INSERT INTO batteries (model, capacity, voltage, etat, network_seller, network_buyer)
-        VALUES
-        ('Battery1', 500, 12, 'Active', 1, 2),
-        ('Battery2', 750, 24, 'Active', 3, 1),
-        ('Battery3', 1000, 36, 'Active', 2, 3)
-        -- Add more batteries as needed
-    `;
+// Sample data for energies
+const energiesData = [
+    { id: 1, quantity: 100, battrie_id: 1, solarPanel_id: 1, transaction_id: 1 },
+    { id: 2, quantity: 150, battrie_id: 2, solarPanel_id: 2, transaction_id: 2 },
+    { id: 3, quantity: 200, battrie_id: 3, solarPanel_id: 3, transaction_id: 3 },
+    { id: 4, quantity: 250, battrie_id: 4, solarPanel_id: 4, transaction_id: 4 },
+    { id: 5, quantity: 300, battrie_id: 5, solarPanel_id: 5, transaction_id: 5 },
+];
+const networkPublicData = [
+    { id: 1, name: 'Network A' },
+    { id: 2, name: 'Network B' },
+];
+async function insertSampleData() {
+    try {
+           // Insert sample data for public networks
+           await db.query('INSERT INTO network_public (id, name) VALUES ?', [networkPublicData.map(network => Object.values(network))]);
+       
+        // Insert sample data for batteries
+        await db.query('INSERT INTO batteries (id, model, capacity, voltage, etat, capacityMax) VALUES ?', [batteriesData.map(battery => Object.values(battery))]);
+ // Insert sample data for solar panels
+ await db.query('INSERT INTO solar_panels (id, etat, marque, model, capacity, efficiency, width, height, installationDate, battrie_id) VALUES ?', [solarPanelsData.map(panel => Object.values(panel))]);
 
-    const insertProductionQuery = `
-    INSERT INTO productions (productionDate, quantity, battrie_id, solarPanel_id)
-    VALUES
-    ('2022-01-15', 100, 1, NULL), -- Production related to Battery1
-    ('2021-12-20', 150, 2, NULL), -- Production related to Battery2
-    ('2023-03-05', 200, 3, NULL), -- Production related to Battery3
-    ('2022-02-10', 120, NULL, 1), -- Production related to SolarPanel1
-    ('2022-03-20', 90, NULL, 2)   -- Production related to SolarPanel
-    `;
+        // Insert sample data for transactions
+        await db.query('INSERT INTO transactions (id, price, transactionDate, type,network_id) VALUES ?', [transactionsData.map(transaction => Object.values(transaction))]);
 
-    const insertConsommationQuery = `
-    INSERT INTO consommations ( consommationDate, quantity, battrie_id, solarPanel_id)
-    VALUES
-    ( '2022-01-15', 50, 1, NULL), -- Consumption related to Battery1
-    ( '2021-12-20', 75, 2, NULL), -- Consumption related to Battery2
-    ( '2023-03-05', 34, 3, NULL), -- Consumption related to Battery3
-    ('2022-02-10', 60, NULL, 1), -- Production related to SolarPanel1
-    ('2022-03-20', 30, NULL, 2)   -- Production related to SolarPanel
+        // Insert sample data for users
+        await db.query('INSERT INTO users (id, firstname, lastname, password, email) VALUES ?', [usersData.map(user => Object.values(user))]);
 
- 
-`;
+        // Insert sample data for energies
+        await db.query('INSERT INTO energies (id, quantity, battrie_id, solarPanel_id, transaction_id) VALUES ?', [energiesData.map(energy => Object.values(energy))]);
 
-    const insertNetworkPublicQuery = `
-        INSERT INTO network_public (name)
-        VALUES
-        ('Network1'),
-        ('Network2'),
-        ('Network3')
-        -- Add more networks as needed
-    `;
+        console.log('Sample data inserted successfully.');
+    } catch (err) {
+        console.error('Error inserting sample data:', err);
+    } finally {
+        db.end(); // Close the database connection
+    }
+}
 
-    // Execute queries to insert data
-    connection.query(insertUserQuery, (err, result) => {
-        if (err) throw err;
-        console.log('Users inserted');
-    });
-    connection.query(insertNetworkPublicQuery, (err, result) => {
-        if (err) throw err;
-        console.log('NetworkPublic inserted');
-    });
-    connection.query(insertSolarPanelQuery, (err, result) => {
-        if (err) throw err;
-        console.log('Solar panels inserted');
-    });
-
-    connection.query(insertBattrieQuery, (err, result) => {
-        if (err) throw err;
-        console.log('Batteries inserted');
-    });
-
-    connection.query(insertProductionQuery, (err, result) => {
-        if (err) throw err;
-        console.log('Productions inserted');
-    });
-
-    connection.query(insertConsommationQuery, (err, result) => {
-        if (err) throw err;
-        console.log('Consommations inserted');
-    });
-
-    
-
-    // Close the MySQL connection
-    connection.end((err) => {
-        if (err) throw err;
-        console.log('MySQL connection closed');
-    });
-});
+// Call the function to insert sample data
+insertSampleData();
