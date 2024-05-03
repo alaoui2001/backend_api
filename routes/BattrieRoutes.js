@@ -28,6 +28,18 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+router.get('/capacity', async (req, res) => {
+    try {
+        const capacity = await BattrieDAO.getSumCapacity();
+        if (capacity.length > 0) {
+            res.status(200).json(capacity[0]);
+        } else {
+            res.status(404).json({ message: 'No batteries found' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // Get a specific battery by ID
 router.get('/:id', async (req, res) => {

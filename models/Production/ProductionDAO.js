@@ -277,6 +277,46 @@ const newArray = dateArray.map(date => {
             });
         });
     }
+    static getAVGProductionForAllSolarPanels(timeframe) {
+        return new Promise((resolve, reject) => {
+            let query;
+            switch (timeframe) {
+                case 'day':
+                    query = `
+                        SELECT AVG(quantity) as totalProduction 
+                        FROM productions 
+                        WHERE productionDate = CURDATE()
+                    `;
+                    break;
+                case 'month':
+                    query = `
+                        SELECT AVG(quantity) as totalProduction 
+                        FROM productions 
+                        WHERE MONTH(productionDate) = MONTH(CURRENT_DATE()) 
+                            AND YEAR(productionDate) = YEAR(CURRENT_DATE())
+                    `;
+                    break;
+                case 'year':
+                    query = `
+                        SELECT AVG(quantity) as totalProduction 
+                        FROM productions 
+                        WHERE YEAR(productionDate) = YEAR(CURRENT_DATE())
+                    `;
+                    break;
+                default:
+                    reject('Invalid timeframe');
+                    return;
+            }
+            db.query(query, (err, results) => {
+                if (err) {
+                    console.error('Error fetching sum production for all solar panels:', err);
+                    reject(err);
+                } else {
+                    resolve(results[0].totalProduction || 0); // Return 0 if no production found
+                }
+            });
+        });
+    }
 }
 
 module.exports = ProductionDAO;
