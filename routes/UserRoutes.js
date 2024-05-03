@@ -1,17 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const UserDAO = require('../models/User/UserDao.js');
-router.post('/', async (req, res) => {
-    const { firstname, lastname, email, password } = req.body;
-    const newUser = new User(null, firstname, lastname, email, password); 
-    try {
-        const userId = await UserDAO.createUser(newUser);
-        res.status(201).json({ id: userId });
-    } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
+
 router.post('/register', async (req, res) => {
     const { firstname, lastname, email, password } = req.body;
     const newUser = { firstname, lastname, email, password };
@@ -19,6 +9,21 @@ router.post('/register', async (req, res) => {
     try {
       const userId = await UserDAO.registerUser(newUser);
       res.status(201).json({ message: 'Registration successful', userId });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+  
+    try {
+      const userId = await UserDAO.login(email,password);
+      if(userId!=null)
+      res.status(201).json({ message: 'login successful', userId });
+    else 
+    res.status(404).json({ message: 'error', userId });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Internal server error' });
@@ -55,18 +60,7 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-router.post('/register', async (req, res) => {
-    const { firstname, lastname, email, password } = req.body;
-    const newUser = { firstname, lastname, email, password };
-  
-    try {
-      const userId = await UserDao.registerUser(newUser);
-      res.status(201).json({ message: 'Registration successful', userId });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  });
+
   router.get('/takeDecision/:need', async (req, res) => {
     const  need  = req.params.need; // Assuming you're sending the 'need' parameter in the request body
 
