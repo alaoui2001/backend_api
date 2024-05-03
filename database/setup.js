@@ -28,6 +28,7 @@ connection.connect((err) => {
             installationDate DATE,
             battrie_id INT, -- Foreign key referencing Battrie
             FOREIGN KEY (battrie_id) REFERENCES batteries(id),
+            
             UNIQUE (battrie_id)
         )
     `;
@@ -62,6 +63,7 @@ connection.connect((err) => {
           
             solarPanel_id INT,
             FOREIGN KEY(solarPanel_id) REFERENCES solar_panels(id)
+            
         )
     `;
 

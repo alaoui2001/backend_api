@@ -243,7 +243,7 @@ class ConsommationDAO {
                     reject('Invalid timeframe');
                     return;
             }
-            connection.query(query, (err, results) => {
+            db.query(query, (err, results) => {
                 if (err) {
                     console.error('Error fetching sum consumption for battries:', err);
                     reject(err);
@@ -314,7 +314,7 @@ class ConsommationDAO {
                     reject('Invalid timeframe');
                     return;
             }
-            connection.query(query, (err, results) => {
+            db.query(query, (err, results) => {
                 if (err) {
                     console.error('Error fetching sum consumption for solar panels:', err);
                     reject(err);
