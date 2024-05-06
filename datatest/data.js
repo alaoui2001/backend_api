@@ -27,13 +27,13 @@ const transactionsData = [
 ];
 
 // Sample data for users
-const usersData = [
-    { id: 1, firstname: 'John', lastname: 'Doe', password: 'password1', email: 'john.doe@example.com' },
-    { id: 2, firstname: 'Jane', lastname: 'Smith', password: 'password2', email: 'jane.smith@example.com' },
-    { id: 3, firstname: 'Michael', lastname: 'Johnson', password: 'password3', email: 'michael.johnson@example.com' },
-    { id: 4, firstname: 'Emily', lastname: 'Brown', password: 'password4', email: 'emily.brown@example.com' },
-    { id: 5, firstname: 'William', lastname: 'Davis', password: 'password5', email: 'william.davis@example.com' },
-];
+// const usersData = [
+//     { id: 1, firstname: 'John', lastname: 'Doe', password: 'password1', email: 'john.doe@example.com' },
+//     { id: 2, firstname: 'Jane', lastname: 'Smith', password: 'password2', email: 'jane.smith@example.com' },
+//     { id: 3, firstname: 'Michael', lastname: 'Johnson', password: 'password3', email: 'michael.johnson@example.com' },
+//     { id: 4, firstname: 'Emily', lastname: 'Brown', password: 'password4', email: 'emily.brown@example.com' },
+//     { id: 5, firstname: 'William', lastname: 'Davis', password: 'password5', email: 'william.davis@example.com' },
+// ];
 
 // Sample data for energies
 const energiesData = [
