@@ -65,7 +65,7 @@ router.delete('/:id', async (req, res) => {
     const  need  = req.params.need; // Assuming you're sending the 'need' parameter in the request body
 
     try {
-        const message = await UserDAO.takeDecision(need);
+        const message = await UserDAO.predictDecision(need);
         res.status(200).json({ message });
     } catch (err) {
         res.status(500).json({ error: err.message });

@@ -11,7 +11,9 @@
   "dependencies": {
     "body-parser": "^1.20.2",
     "express": "^4.19.2",
+    "ml-regression-simple-linear": "^3.0.0",
     "mysql": "^2.18.1",
+    "simple-linear-regression": "^1.0.3",
     "util": "^0.12.5"
   }
 }

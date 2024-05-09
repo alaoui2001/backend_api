@@ -1,0 +1,26 @@
+{
+  "name": "correlation-coefficient-r",
+  "version": "1.0.0",
+  "description": "Calculate the correlation coefficient r",
+  "main": "index.js",
+  "dependencies": {
+    "math-standard-deviation": "^1.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diversen/correlation-coefficient-r.git"
+  },
+  "keywords": [
+    "correlation-coefficient-r"
+  ],
+  "author": "Dennis Iversen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/diversen/correlation-coefficient-r/issues"
+  },
+  "homepage": "https://github.com/diversen/correlation-coefficient-r#readme"
+}
