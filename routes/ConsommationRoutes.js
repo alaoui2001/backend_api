@@ -79,6 +79,23 @@ router.put('/:id', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+router.get('/report/:timeframe', async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const { timeframe } = req.params;
+    try {
+        report=null
+        if(timeframe=="day"){
+             report = await ConsommationDAO.reportConsommationByDayWithRange( startDate, endDate);
+        } 
+        else if(timeframe=="month"){
+             report = await ConsommationDAO.reportconsommationByMonthWithRange( startDate, endDate);
+        }
+       
+        res.status(200).json(report);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // Delete a consommation
 router.delete('/:id', async (req, res) => {
@@ -104,7 +121,15 @@ router.get('/report/battries/:timeframe', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
+router.get('/reporting/:timeframe', async (req, res) => {
+    const { timeframe } = req.params;
+    try {
+        const avgProductionForAllSolarPanels = await ConsommationDAO.reportConsommationByTimeFrame(timeframe);
+        res.status(200).json( avgProductionForAllSolarPanels );
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 // Route to get sum consumption for solar panels by timeframe
 router.get('/report/solarpanels/:timeframe', async (req, res) => {
     const { timeframe } = req.params;

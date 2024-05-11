@@ -27,7 +27,7 @@ connection.connect((err) => {
             height FLOAT,
             installationDate DATE,
             battrie_id INT, -- Foreign key referencing Battrie
-            FOREIGN KEY (battrie_id) REFERENCES batteries(id),
+            FOREIGN KEY (battrie_id) REFERENCES batteries(id) ON DELETE CASCADE,
             
             UNIQUE (battrie_id)
         )
@@ -94,22 +94,17 @@ connection.connect((err) => {
          quantity float ,
          battrie_id INT, -- Foreign key referencing Battrie
          solarPanel_id INT, -- Foreign key referencing SolarPanel
+         price Float,
+         transactionDate DATE,
+         network_id int,
+         type varchar(255),
          FOREIGN KEY (battrie_id) REFERENCES batteries(id),
          FOREIGN KEY (solarPanel_id) REFERENCES solar_panels(id),
-         transaction_id int,
-         FOREIGN KEY (transaction_id) REFERENCES transactions(id)
+         FOREIGN KEY (network_id) REFERENCES network_public(id)
     )
 `;
-    const createTransactionsTableQuery = `
-    CREATE TABLE IF NOT EXISTS transactions (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        price Float,
-        transactionDate DATE,
-        network_id int,
-        type varchar(255), -- type selling or buying
-        FOREIGN KEY (network_id) REFERENCES network_public(id)
-    )
-`;
+
+
 
     // Execute queries to create tables
     connection.query(createUserTableQuery, (err, result) => {
@@ -140,10 +135,7 @@ connection.connect((err) => {
         if (err) throw err;
         console.log('Consommation table created');
     });
-    connection.query(createTransactionsTableQuery, (err, result) => {
-        if (err) throw err;
-        console.log('transaction table created');
-    });
+ 
     connection.query(createEnergiesTableQuery, (err, result) => {
         if (err) throw err;
         console.log('energie table created');

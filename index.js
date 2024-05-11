@@ -6,7 +6,7 @@ const productionRoutes = require('./routes/ProductionRoutes');
 const consommationRoutes = require('./routes/ConsommationRoutes');
 const networkPublicRoutes = require('./routes/NetworkPublicRoutes');
 const userRoutes = require('./routes/UserRoutes');
-const transactionRoutes = require('./routes/TransactionRoutes');
+const energieRoutes = require('./routes/EnergieRoutes');
 const app = express();
 
 // Body parser middleware
@@ -20,7 +20,7 @@ app.use('/productions', productionRoutes);
 app.use('/consommations', consommationRoutes);
 app.use('/networks', networkPublicRoutes);
 app.use('/users', userRoutes);
-app.use('/transactions', transactionRoutes);
+app.use('/energies', energieRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 3000;

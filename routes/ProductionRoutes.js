@@ -88,6 +88,16 @@ router.get('/report/solarpanels/:timeframe', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+router.get('/reporting/solarpanels/:timeframe', async (req, res) => {
+    const { timeframe } = req.params;
+    try {
+        const avgProductionForAllSolarPanels = await ProductionDAO.reportProductionByTimeFrame(timeframe);
+        res.status(200).json({ avgProductionForAllSolarPanels });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 router.get('/report/solarpanels/avg/:timeframe', async (req, res) => {
     const { timeframe } = req.params;
     try {

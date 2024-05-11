@@ -65,10 +65,20 @@ router.delete('/:id', async (req, res) => {
     const  need  = req.params.need; // Assuming you're sending the 'need' parameter in the request body
 
     try {
-        const message = await UserDAO.predictDecision(need);
+        const message = await UserDAO.takeDecision(need);
         res.status(200).json({ message });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+});
+router.get('/extract', async (req, res) => {
+  const  need  = req.params.need; // Assuming you're sending the 'need' parameter in the request body
+
+  try {
+      const data = await UserDAO.extractDataForDecision();
+      res.status(200).json(data );
+  } catch (err) {
+      res.status(500).json({ error: err.message });
+  }
 });
 module.exports = router;

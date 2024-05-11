@@ -102,6 +102,30 @@ class BattrieDAO {
             });
         });
     }
+    static async getAvalaibleBattries() {
+        return new Promise((resolve, reject) => {
+            const query = 'SELECT * FROM batteries where id not in (select battrie_id from solar_panels )';
+            db.query(query, (err, results) => {
+                if (err) {
+                    console.error('Error fetching batteries:', err);
+                    reject(err);
+                } else {
+                    // Add capacityMax to each battery object
+                    const batteries = results.map(battery => {
+                        return new Battrie(
+                            battery.id,
+                            battery.model,
+                            battery.capacity,
+                            battery.voltage,
+                            battery.etat,
+                            battery.capacityMax // Added capacity_max here
+                        );
+                    });
+                    resolve(batteries);
+                }
+            });
+        });
+    }
 
     static async getBattrieById(id) {
         return new Promise((resolve, reject) => {

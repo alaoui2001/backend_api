@@ -61,6 +61,45 @@ class ConsommationDAO {
             });
         });
     }
+    static async reportConsommationByTimeFrame(timeframe) {
+        return new Promise((resolve, reject) => {
+            let groupByClause = '';
+            let dateFormat = '';
+    
+            if (timeframe === 'month') {
+                groupByClause = 'YEAR(consommationDate), MONTH(consommationDate)';
+                dateFormat = '%Y-%m';
+            } else if (timeframe === 'year') {
+                groupByClause = 'YEAR(consommationDate)';
+                dateFormat = '%Y';
+            } else if (timeframe === 'day') {
+                groupByClause = 'consommationDate';
+                dateFormat = '%Y-%m-%d';
+            } else {
+                reject('Invalid timeframe');
+                return;
+            }
+    
+            const query = `
+                SELECT 
+                    DATE_FORMAT(consommationDate, ?) as timeframe,
+                    SUM(quantity) as totalQuantity 
+                FROM 
+                    consommations
+                GROUP BY 
+                    ${groupByClause}
+            `;
+    
+            db.query(query, [dateFormat], (err, results) => {
+                if (err) {
+                    console.error('Error generating consommation report:', err);
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+    }
     
   static  async reportConsommationByDayForBatteries() {
         return new Promise((resolve, reject) => {
@@ -76,6 +115,105 @@ class ConsommationDAO {
                     reject(err);
                 } else {
                     resolve(results);
+                }
+            });
+        });
+    }
+   
+    static reportConsommationByDayWithRange(startDate = null, endDate = null) {
+        let query = `
+            SELECT consommationDate, SUM(quantity) as totalQuantity 
+            FROM consommations 
+           
+        `;
+        const params = [];
+
+        if (startDate && endDate) {
+            query += ' AND consommationDate BETWEEN ? AND ?';
+            params.push(startDate, endDate);
+        }
+
+        query += ' GROUP BY consommationDate';
+
+        return new Promise((resolve, reject) => {
+            db.query(query, params, (err, results) => {
+                if (err) {
+                    console.error('Error generating consommation report for solar panels with range:', err);
+                    reject(err);
+                } else {
+                    let consommationArray=results
+                    let lowestDate = new Date(consommationArray[0].consommationDate);
+let highestDate = new Date(consommationArray[0].consommationDate);
+consommationArray.forEach(obj => {
+    const currentDate = new Date(obj.consommationDate);
+    if (currentDate < lowestDate) {
+        lowestDate = currentDate;
+    }
+    if (currentDate > highestDate) {
+        highestDate = currentDate;
+    }
+});
+
+// Generate an array of dates between the lowest and highest dates
+const dateArray = [];
+let currentDate = new Date(lowestDate);
+while (currentDate <= highestDate) {
+    dateArray.push(currentDate.toISOString().slice(0, 10));
+    currentDate.setDate(currentDate.getDate() + 1);
+}
+
+// Create a new array with objects for each date, setting totalQuantity to 0 for missing dates
+const newArray = dateArray.map(date => {
+    const existingEntry = consommationArray.find(obj =>
+         String(obj.consommationDate.toISOString()).slice(0,10) === date);
+    return {
+        "consommationDate": date,
+        "totalQuantity": existingEntry ? existingEntry.totalQuantity : 0
+    };
+});
+                    
+                    resolve(newArray);
+                }
+            });
+        });
+    }
+    static reportconsommationByMonthWithRange(startDate = null, endDate = null) {
+        let query = `
+            SELECT YEAR(consommationDate) as year, MONTH(consommationDate) as month, SUM(quantity) as totalQuantity 
+            FROM consommations 
+            
+        `;
+        const params = [];
+    
+        if (startDate && endDate) {
+            query += ' AND consommationDate BETWEEN ? AND ?';
+            params.push(startDate, endDate);
+        }
+    
+        query += ' GROUP BY YEAR(consommationDate), MONTH(consommationDate)';
+    
+        return new Promise((resolve, reject) => {
+            db.query(query, params, (err, results) => {
+                if (err) {
+                    console.error('Error generating consommation report for solar panels by month:', err);
+                    reject(err);
+                } else {
+                    let consommationArray = results;
+    
+                    // Create a new array with objects for each month, setting totalQuantity to 0 for missing months
+                    const newArray = [];
+                    for (let i = 1; i <= 12; i++) {
+                        const existingEntry = consommationArray.find(obj =>
+                            obj.month === i
+                        );
+                        const totalQuantity = existingEntry ? existingEntry.totalQuantity : 0;
+                        newArray.push({
+                            "month": i,
+                            "totalQuantity": totalQuantity
+                        });
+                    }
+    
+                    resolve(newArray);
                 }
             });
         });
@@ -98,8 +236,8 @@ class ConsommationDAO {
             const query = `
                 SELECT consommationDate, SUM(quantity) as totalQuantity 
                 FROM consommations 
-                WHERE solarPanel_id IS NOT NULL -- Only consider consommations related to solar panels
-                GROUP BY consommationDate
+                 -- Only consider consommations related to solar panels
+                GROUP BY date(consommationDate)
             `;
             db.query(query, (err, results) => {
                 if (err) {

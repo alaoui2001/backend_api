@@ -63,6 +63,28 @@ class ProductionDAO {
             });
         });
     }
+    static async getAverageProductionByDay(year) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT 
+                    productionDate,
+                    AVG(quantity) as averageProduction
+                FROM 
+                    productions
+                WHERE 
+                    YEAR(productionDate) = ? 
+                GROUP BY 
+                    productionDate
+            `;
+            db.query(query, [year], (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+    }
     static getProductionByDateAndSolarId(productionDate, solarPanelId) {
         return new Promise((resolve, reject) => {
             const query = 'SELECT * FROM productions WHERE productionDate = ? AND solarPanel_id = ?';
@@ -111,7 +133,7 @@ class ProductionDAO {
             });
         });
     }
-
+   
     static getProductionById(id) {
         return new Promise((resolve, reject) => {
             db.query('SELECT * FROM productions WHERE id = ?', [id], (err, results) => {
@@ -192,7 +214,7 @@ class ProductionDAO {
             params.push(startDate, endDate);
         }
 
-        query += ' GROUP BY productionDate';
+        query += ' GROUP BY date(productionDate)';
 
         return new Promise((resolve, reject) => {
             db.query(query, params, (err, results) => {
@@ -236,7 +258,46 @@ const newArray = dateArray.map(date => {
             });
         });
     }
-
+    
+    static async reportProductionByTimeFrame(timeframe) {
+        return new Promise((resolve, reject) => {
+            let groupByClause = '';
+            let dateFormat = '';
+    
+            if (timeframe === 'month') {
+                groupByClause = 'YEAR(productionDate), MONTH(productionDate)';
+                dateFormat = '%Y-%m';
+            } else if (timeframe === 'year') {
+                groupByClause = 'YEAR(productionDate)';
+                dateFormat = '%Y';
+            } else if (timeframe === 'day') {
+                groupByClause = 'productionDate';
+                dateFormat = '%Y-%m-%d';
+            } else {
+                reject('Invalid timeframe');
+                return;
+            }
+    
+            const query = `
+                SELECT 
+                    DATE_FORMAT(productionDate, ?) as timeframe,
+                    SUM(quantity) as totalQuantity 
+                FROM 
+                    productions
+                GROUP BY 
+                    ${groupByClause}
+            `;
+    
+            db.query(query, [dateFormat], (err, results) => {
+                if (err) {
+                    console.error('Error generating production report:', err);
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+    }
    static getSumProductionForAllSolarPanels(timeframe) {
         return new Promise((resolve, reject) => {
             let query;
