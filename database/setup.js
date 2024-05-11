@@ -99,7 +99,7 @@ connection.connect((err) => {
          network_id int,
          type varchar(255),
          FOREIGN KEY (battrie_id) REFERENCES batteries(id),
-         FOREIGN KEY (solarPanel_id) REFERENCES solar_panels(id),
+       
          FOREIGN KEY (network_id) REFERENCES network_public(id)
     )
 `;

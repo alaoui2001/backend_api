@@ -19,11 +19,11 @@ const batteriesData = [
 ];
 
 const transactionsData = [
-    { id: 1, price: 2000, transactionDate: '2022-01-15', type: 'Selling', network_id: 1 },
-    { id: 2, price: 1500, transactionDate: '2022-02-20', type: 'Buying', network_id: 2 },
-    { id: 3, price: 1800, transactionDate: '2022-03-10', type: 'Selling', network_id: 1 },
-    { id: 4, price: 1200, transactionDate: '2022-04-05', type: 'Buying', network_id: 2 },
-    { id: 5, price: 2500, transactionDate: '2022-05-20', type: 'Selling', network_id: 1 },
+    { id: 1, price: 2000, transactionDate: '2022-01-15', type: 'selling', network_id: 1 },
+    { id: 2, price: 1500, transactionDate: '2022-02-20', type: 'buying', network_id: 2 },
+    { id: 3, price: 1800, transactionDate: '2022-03-10', type: 'selling', network_id: 1 },
+    { id: 4, price: 1200, transactionDate: '2022-04-05', type: 'buying', network_id: 2 },
+    { id: 5, price: 2500, transactionDate: '2022-05-20', type: 'selling', network_id: 1 },
 ];
 
 // Sample data for users

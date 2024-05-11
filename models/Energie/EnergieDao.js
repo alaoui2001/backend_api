@@ -4,16 +4,21 @@ const BattrieDAO = require('../Battrie/BattrieDAO');
 class EnergieDAO {
     static async createEnergy(energy) {
         return new Promise( (resolve, reject) => {
-            const { quantity, battrie_id, solarPanel_id, transactionDate, type } = energy;
+            const { quantity, battrie_id, transactionDate, type,network_id } = energy;
             let price=1
             db.query(
-                'INSERT INTO energies (quantity, battrie_id, solarPanel_id, price, transactionDate, type) VALUES (?, ?, ?, ?, ?, ?)',
-                [quantity, battrie_id, solarPanel_id, price, transactionDate, type],
+                'INSERT INTO energies (quantity, battrie_id, price, transactionDate, type,network_id) VALUES (?, ?, ?, ?, ?, ?)',
+                [quantity, battrie_id, price, transactionDate, type,network_id],
                 async (err, results) => {
                     if (err) {
                         reject(err);
                     } else {
-                        await BattrieDAO.updateBatteryCapacity(battrie_id,quantity*price)
+                        let qte=quantity
+                        if(type=="selling")
+                        qte=-quantity
+                        
+                    
+                        await BattrieDAO.updateBatteryCapacity(battrie_id,quantity)
                         resolve(results.insertId);
                     }
                 }
@@ -33,10 +38,11 @@ class EnergieDAO {
                             id: energyData.id,
                             quantity: energyData.quantity,
                             battrie_id: energyData.battrie_id,
-                            solarPanel_id: energyData.solarPanel_id,
+                        
                             price: energyData.price,
                             transactionDate: energyData.transactionDate,
-                            type: energyData.type
+                            type: energyData.type,
+                            network_id:energyData.network_id,
                         };
                         resolve(energy);
                     } else {
@@ -49,16 +55,19 @@ class EnergieDAO {
 
     static async updateEnergy(energy) {
         return new Promise((resolve, reject) => {
-            const { id, quantity, battrie_id, solarPanel_id, transactionDate, type } = energy;
+            const { id, quantity, battrie_id, transactionDate, type ,network_id} = energy;
             let price=1
             db.query(
-                'UPDATE energies SET quantity = ?, battrie_id = ?, solarPanel_id = ?, price = ?, transactionDate = ?, type = ? WHERE id = ?',
-                [quantity, battrie_id, solarPanel_id, price, transactionDate, type, id],
+                'UPDATE energies SET quantity = ?, battrie_id = ?, price = ?, transactionDate = ?, type = ? ,network_id=? WHERE id = ?',
+                [quantity, battrie_id, price, transactionDate, type, network_id,id],
                 async (err, results) => {
                     if (err) {
                         reject(err);
                     } else {
-                        await BattrieDAO.updateBatteryCapacity(battrie_id,quantity*price)
+                       let  qte=quantity
+                        if(type=="selling")
+                        qte=-quantity
+                        await BattrieDAO.updateBatteryCapacity(battrie_id,qte)
                         resolve(results.affectedRows > 0);
                     }
                 }
