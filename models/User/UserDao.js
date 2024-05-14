@@ -125,6 +125,45 @@ class UserDAO {
           }
           return message
     }
+    static async takeDecisionClass(production,battriecapacity,consommation){
+      
+      const BattrieDAO=require("../Battrie/BattrieDAO")
+         
+      let a=await BattrieDAO.getSumCapacityMax()
+            
+      let battrieDispo= a[0].sumCapacitymax-battriecapacity;
+              
+             
+             if(production >= consommation){
+              let Surplus=production-consommation
+            
+              
+              
+             
+             if(battrieDispo >=Surplus){
+                  return [battrieDispo,0]
+              }
+              else{
+                return [battrieDispo,3]
+              }
+            }
+            else{
+            
+              let energieNecessaire=consommation-production
+   
+           
+              if(battriecapacity>=energieNecessaire){
+                 return [battrieDispo,1]
+              }
+              else {
+            return [battrieDispo,2]              
+              {
+  
+              }
+            }
+        }
+        
+  }
     static async extractDataForDecision(){
       const ProductionDAO=require("../Production/ProductionDAO")
       const BattrieDAO=require("../Battrie/BattrieDAO")
@@ -134,9 +173,10 @@ class UserDAO {
         let consommation=await ConsommationDAO.reportConsommationByDayForSolarPanels( );
           
         
-        let capacitybatterie=await BattrieDAO.getSumCapacity();
-        let battrieDispo= await BattrieDAO.getSumCapacityDifference();
-        capacitybatterie=capacitybatterie[0]["sumCapacity"]
+        let capacitybatterie=await BattrieDAO.getBattriesCapacities();
+       
+        let battrieDispo= await BattrieDAO.getSumCapacityDisp();
+        
         let data=[]
         let Surplus=0
         for(let i=production.length-1;i>=0;i--){
@@ -150,11 +190,11 @@ class UserDAO {
             Surplus= datatobject["production"]-  datatobject["consommation"]
            
            
-            console.log(capacitybatterie)
-            capacitybatterie+=Surplus
-            datatobject["capacity"]=  capacitybatterie
+        
+            
+            datatobject["capacity"]=  capacitybatterie[i]["capacity"] ?capacitybatterie[i]["capacity"] :0
             if(datatobject["production"]> datatobject["consommation"]  ){
-              if(battrieDispo >=Surplus){
+              if(battrieDispo[i]["disp"] >=Surplus){
                 datatobject["action"]=0
               }
               else{
@@ -164,13 +204,14 @@ class UserDAO {
             }
             else {
               let energieNecessaire=-Surplus
-              if(capacitybatterie>=energieNecessaire){
+              if(capacitybatterie[i]["capacity"]>=energieNecessaire){
                 datatobject["action"]=1
               }
               else{
                 datatobject["action"]=2
               }
             }
+          
             data[i]=datatobject
         }
         return data

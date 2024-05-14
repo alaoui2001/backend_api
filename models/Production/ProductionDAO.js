@@ -23,7 +23,7 @@ class ProductionDAO {
                                 if (consommation) {
                                     const newCapacity = quantity - consommation.quantity;
                                     let battrieId=await BattrieDAO.getBattrieBySolarPanelId(solarPanel_id)
-                                    BattrieDAO.updateBatteryCapacity(battrieId, newCapacity)
+                                    BattrieDAO.updateBatteryCapacity(battrieId, newCapacity,productionDate)
                                         .then(updatedSolarPanel => {
                                             if (!updatedSolarPanel) {
                                                 reject('Failed to update solar panel capacity');

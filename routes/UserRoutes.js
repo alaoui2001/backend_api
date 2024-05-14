@@ -71,6 +71,17 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+router.get('/takeDecisionClass', async (req, res) => {
+  const { production,etatbattrie,need}  = req.query; // Assuming you're sending the 'need' parameter in the request body
+
+  try {
+      const message = await UserDAO.takeDecisionClass(production,etatbattrie,need);
+      console.log(message)
+      res.status(200).json({ "message":message[1] ,"disp":message[0]  });
+  } catch (err) {
+      res.status(500).json({ error: err.message });
+  }
+});
 router.get('/extract', async (req, res) => {
   const  need  = req.params.need; // Assuming you're sending the 'need' parameter in the request body
 

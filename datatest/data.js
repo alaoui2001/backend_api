@@ -2,30 +2,58 @@ const db = require('../config/connection'); // Assuming your database connection
 
 // Sample data for solar panels
 const solarPanelsData = [
-    { id: 1, etat: 'actif', marque: 'SolarTech', model: 'ST-100', capacity: 100, efficiency: 0.85, width: 1.5, height: 2, installationDate: '2022-01-01', battrie_id: 1 },
-    { id: 2, etat: 'actif', marque: 'SunPower', model: 'SP-200', capacity: 200, efficiency: 0.88, width: 1.8, height: 2.2, installationDate: '2022-02-01', battrie_id: 2 },
-    { id: 3, etat: 'actif', marque: 'EcoSolar', model: 'ES-150', capacity: 150, efficiency: 0.82, width: 1.7, height: 2.1, installationDate: '2022-03-15', battrie_id: 3 },
-    { id: 4, etat: 'actif', marque: 'GreenEnergy', model: 'GE-120', capacity: 120, efficiency: 0.75, width: 1.4, height: 1.8, installationDate: '2022-04-20', battrie_id: 4 },
-    { id: 5, etat: 'actif', marque: 'SunBeam', model: 'SB-180', capacity: 180, efficiency: 0.90, width: 1.9, height: 2.4, installationDate: '2022-05-10', battrie_id: 5 },
+    { id: 1, etat: 'actif', marque: 'SolarTech', model: 'ST-100', capacity: 100, efficiency: 0.85, width: 1.5, height: 2, installationDate: '2022-01-01', battrie_id: 1 }
+
 ];
 
 // Sample data for batteries
 const batteriesData = [
-    { id: 1, model: 'Battery Model 1', capacity: 500, voltage: 48, etat: 'actif', capacityMax: 1000 },
-    { id: 2, model: 'Battery Model 2', capacity: 800, voltage: 48, etat: 'actif', capacityMax: 1500 },
-    { id: 3, model: 'Battery Model 3', capacity: 600, voltage: 48, etat: 'actif', capacityMax: 1200 },
-    { id: 4, model: 'Battery Model 4', capacity: 700, voltage: 48, etat: 'actif', capacityMax: 1400 },
-    { id: 5, model: 'Battery Model 5', capacity: 900, voltage: 48, etat: 'actif', capacityMax: 1800 },
+    { id: 1, model: 'Battery Model 1', capacity: 400, voltage: 48, etat: 'actif', capacityMax: 1000 }
+  
 ];
+let productiondata=[]
+let consommationdata=[]
+let energiesData=[]
+let capacities=[]
+let date = new Date('2024-05-01')
+let j=0
+for(i=0;i<1000;i++){
+    let production=Math.floor(100+ Math.random() * 1000);
+    let consommation=Math.floor(100+ Math.random() * 1000);
+   
+    
+    capacities[i]={capacitydate:date.toISOString().split('T')[0],capacity:batteriesData[0].capacity}
+    productiondata[i]={productiondate:date.toISOString().split('T')[0],quantity:production,solarPanel_id:1}
+    if(production>=consommation){
+        consommationdata[i]={consommationdate:date.toISOString().split('T')[0],quantity:consommation,battrie_id:null,solarPanel_id:1}
+        surplus=production-consommation
+        if(surplus> batteriesData[0].capacityMax-batteriesData[0].capacity){
+            batteriesData[0].capacity=batteriesData[0].capacityMax
 
-const transactionsData = [
-    { id: 1, price: 2000, transactionDate: '2022-01-15', type: 'selling', network_id: 1 },
-    { id: 2, price: 1500, transactionDate: '2022-02-20', type: 'buying', network_id: 2 },
-    { id: 3, price: 1800, transactionDate: '2022-03-10', type: 'selling', network_id: 1 },
-    { id: 4, price: 1200, transactionDate: '2022-04-05', type: 'buying', network_id: 2 },
-    { id: 5, price: 2500, transactionDate: '2022-05-20', type: 'selling', network_id: 1 },
-];
+            energiesData[j]={  quantity:surplus-( batteriesData[0].capacityMax-batteriesData[0].capacity), battrie_id: 1,  price: 1, transactionDate: date.toISOString().split('T')[0], type: "selling",network_id:1}
+            j++;
+        }
+        
+           else
+           batteriesData[0].capacity+=surplus
+    }
 
+    else{
+        if(consommation>=batteriesData[0].capacity){
+            consommationdata[i]={consommationdate:date.toISOString().split('T')[0],quantity:consommation,battrie_id:1,solarPanel_id:null}
+          energiesData[j]={  quantity:consommation-batteriesData[0].capacity, battrie_id: 1,  price: 1, transactionDate: date.toISOString().split('T')[0], type: "buying",network_id:1}
+         batteriesData[0].capacity=0
+         j++;
+        }
+        else{
+            consommationdata[i]={consommationdate:date.toISOString().split('T')[0],quantity:consommation,battrie_id:1,solarPanel_id:null}
+            batteriesData[0].capacity-=consommation
+        }
+    }
+    date.setDate(date.getDate() + 1);
+ 
+}
+ 
 // Sample data for users
 // const usersData = [
 //     { id: 1, firstname: 'John', lastname: 'Doe', password: 'password1', email: 'john.doe@example.com' },
@@ -36,13 +64,7 @@ const transactionsData = [
 // ];
 
 // Sample data for energies
-const energiesData = [
-    { id: 1, quantity: 100, battrie_id: 1,  price: 1, transactionDate: '2022-01-15', type: 'Selling',network_id:1},
-    { id: 2, quantity: 150, battrie_id: 2 ,price: 1, transactionDate: '2022-01-16', type: 'Buying',network_id:1},
-    { id: 3, quantity: 200, battrie_id: 3, price: 1, transactionDate: '2022-03-15', type: 'Selling',network_id:1},
-    { id: 4, quantity: 250, battrie_id: 4 ,price: 1, transactionDate: '2022-01-17', type: 'Buying',network_id:1},
-    { id: 5, quantity: 300, battrie_id: 5,price: 1, transactionDate: '2022-02-15', type: 'Selling',network_id:1},
-];
+
 const networkPublicData = [
     { id: 1, name: 'Network A' },
     { id: 2, name: 'Network B' },
@@ -60,9 +82,12 @@ async function insertSampleData() {
         
         // Insert sample data for users
        // await db.query('INSERT INTO users (id, firstname, lastname, password, email) VALUES ?', [usersData.map(user => Object.values(user))]);
+       await db.query('INSERT INTO productions ( productionDate,quantity,solarPanel_id ) VALUES ?', [productiondata.map(production => Object.values(production))]);
+       await db.query('INSERT INTO consommations ( consommationDate,quantity, battrie_id,solarPanel_id ) VALUES ?', [consommationdata.map(consommation => Object.values(consommation))]);
 
-        // Insert sample data for energies
-        await db.query('INSERT INTO energies (id, quantity, battrie_id, price, transactionDate, type,network_id) VALUES ?', [energiesData.map(energy => Object.values(energy))]);
+       // Insert sample data for energies
+        await db.query('INSERT INTO energies ( quantity, battrie_id, price, transactionDate, type,network_id) VALUES ?', [energiesData.map(energy => Object.values(energy))]);
+        await db.query('INSERT INTO capacities ( capacityDate,capacity ) VALUES ?', [capacities.map(energy => Object.values(energy))]);
 
         console.log('Sample data inserted successfully.');
     } catch (err) {

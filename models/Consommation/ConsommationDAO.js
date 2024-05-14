@@ -25,15 +25,20 @@ class ConsommationDAO {
                         }
 
                         insertId = results.insertId;
-
+                        
                         if (solarPanel_id) {
+                            console.log(insertId)
                             const ProductionDAO = require('../Production/ProductionDAO');
                             const BattrieDAO = require('../Battrie/BattrieDAO');
                             const production = await ProductionDAO.getProductionByDateAndSolarId(consommationDate, solarPanel_id);
+                            console.log(2)
                             if (production) {
+                                console.log(1)
                                 const newCapacity = production.quantity - quantity;
                                 const battrie = await BattrieDAO.getBattrieBySolarPanelId(solarPanel_id);
-                                const updatedBattrie = await BattrieDAO.updateBatteryCapacity(battrie.id, newCapacity);
+                                console.log(battrie)
+                                const updatedBattrie = await BattrieDAO.updateBatteryCapacity(battrie.id, newCapacity,consommationDate);
+                                console.log(updatedBattrie)
                                 if (!updatedBattrie) {
                                     db.rollback(() => {
                                         reject('Failed to update battery capacity');

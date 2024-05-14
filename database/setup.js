@@ -66,6 +66,17 @@ connection.connect((err) => {
             
         )
     `;
+    const createcapacityBattrieTableQuery = `
+    CREATE TABLE IF NOT EXISTS capacities (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        capacityDate DATE,
+        capacity float,
+        unique(capacityDate)
+      
+        
+        
+    )
+`;
 
     const createConsommationTableQuery = `
         CREATE TABLE IF NOT EXISTS consommations (
@@ -140,7 +151,11 @@ connection.connect((err) => {
         if (err) throw err;
         console.log('energie table created');
     });
-
+    connection.query(createcapacityBattrieTableQuery, (err, result) => {
+        if (err) throw err;
+        console.log('capacity table created');
+    });
+    
     // Close the MySQL connection
     connection.end((err) => {
         if (err) throw err;

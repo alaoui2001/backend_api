@@ -25,7 +25,19 @@ class EnergieDAO {
             );
         });
     }
-
+    static async getAllEnergies() {
+        return new Promise((resolve, reject) => {
+            const query = 'SELECT * FROM energies';
+            db.query(query, (err, results) => {
+                if (err) {
+                    console.error('Error fetching all energies:', err);
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+    }
     static async getEnergyById(id) {
         return new Promise((resolve, reject) => {
             db.query('SELECT * FROM energies WHERE id = ?', [id], (err, results) => {

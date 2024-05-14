@@ -23,7 +23,9 @@ connection.connect((err) => {
         'DROP TABLE IF EXISTS solar_panels;',
         'DROP TABLE IF EXISTS batteries;',
         'DROP TABLE IF EXISTS network_public;',
-        'DROP TABLE IF EXISTS users;'
+        'DROP TABLE IF EXISTS users;',
+        'DROP TABLE IF EXISTS capacities;'
+
     ];
 
     // Execute each drop table query

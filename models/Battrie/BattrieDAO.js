@@ -35,6 +35,23 @@ class BattrieDAO {
             });
         });
     }
+    static async getSumCapacityDisp() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                select   (( SELECT 
+                       SUM(capacityMax) 
+                FROM batteries) - capacity) as disp from capacities
+                
+            `;
+            db.query(query, [], (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+    }
     static async getSumCapacity() {
         return new Promise((resolve, reject) => {
             const query = `
@@ -48,6 +65,24 @@ class BattrieDAO {
                     reject(err);
                 } else {
                     resolve(results);
+                }
+            });
+        });
+    }
+    static async getSumCapacityMax() {
+        return new Promise((resolve, reject) => {
+            const query = `
+               SELECT 
+                       SUM(capacityMax) as sumCapacitymax
+                FROM batteries
+               
+            `;
+            db.query(query, [], (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    console.log(results)
+                    resolve(results)
                 }
             });
         });
@@ -66,9 +101,11 @@ class BattrieDAO {
                             battrieData.id,
                             battrieData.model,
                             battrieData.capacity,
-                            battrieData.capacityMax,
                             battrieData.voltage,
-                            battrieData.etat
+                            battrieData.etat,
+                            battrieData.capacityMax
+                            
+                            
                         );
                         resolve(battrie);
                     } else {
@@ -102,7 +139,22 @@ class BattrieDAO {
             });
         });
     }
-    static async getAvalaibleBattries() {
+    static async getBattriesCapacities() {
+        return new Promise((resolve, reject) => {
+            const query = 'SELECT capacity FROM capacities ';
+            db.query(query, (err, results) => {
+                if (err) {
+                    console.error('Error fetching batteries:', err);
+                    reject(err);
+                } else {
+                    // Add capacityMax to each battery object
+                  
+                    resolve(results);
+                }
+            });
+        });
+    }
+    static async getAvailableBattries() {
         return new Promise((resolve, reject) => {
             const query = 'SELECT * FROM batteries where id not in (select battrie_id from solar_panels )';
             db.query(query, (err, results) => {
@@ -180,10 +232,17 @@ class BattrieDAO {
             });
         });
     }
-    static async updateBatteryCapacity(battrieId, capacityAdded) {
-        return new Promise((resolve, reject) => {
+    static async updateBatteryCapacity(battrieId, capacityAdded,date) {
+        
+        return new Promise( async (resolve, reject) => {
+            
+
+          try{
+
+        
             // Fetch the current capacity and capacityMax
-            db.query('SELECT capacity, capacityMax FROM batteries WHERE id = ?', [battrieId], (err, results) => {
+            console.log(20)
+            await db.query('SELECT capacity, capacityMax FROM batteries WHERE id = ?', [battrieId], (err, results) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -191,8 +250,46 @@ class BattrieDAO {
                         const { capacity, capacityMax } = results[0];
                         const newCapacity = capacity + capacityAdded;
                         const updatedCapacity = newCapacity > capacityMax ? capacityMax : newCapacity;
-    
+                         
                         // Update the battery capacity
+                        db.query(
+                            'select * from capacities where capacitydate=?',
+                            [date],
+                           async  (err, results) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    console.log(10)
+                                    if (results.length > 0) {
+                                        console.log(results.length)
+                                         db.query(
+                                            'UPDATE capacities SET capacity =capacity + ? WHERE capacitydate = ?',
+                                            [capacity, date],
+                                            (err, updateResults) => {
+                                                if (err) 
+                                                    reject(err);
+                                                
+                                            }
+                                        );
+                                    }
+                                    else{
+                                        
+                                               db.query(
+                                                  'insert into capacities(capacity,capacitydate) VALUES (?, ?)',
+                                                  [capacity, date],
+                                                  (inserterr, insertResults) => {
+                                                      if (inserterr) {
+                                                          reject(inserterr);
+                                                      }
+                                                  }
+                                              );
+                                           
+                                    }
+
+                                    
+                                }
+                            }
+                        );
                         db.query(
                             'UPDATE batteries SET capacity = ? WHERE id = ?',
                             [updatedCapacity, battrieId],
@@ -209,7 +306,13 @@ class BattrieDAO {
                     }
                 }
             });
-        });
+        }catch(e){
+            console.log(e)
+        }
+        }
+        
+        );
+  
     }
     
     static async reportConsumptionAndProduction(battrieId, startDate, endDate) {

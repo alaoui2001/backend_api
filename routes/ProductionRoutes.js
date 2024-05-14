@@ -92,8 +92,8 @@ router.get('/report/solarpanels/:timeframe', async (req, res) => {
 router.get('/reporting/solarpanels/:timeframe', async (req, res) => {
     const { timeframe } = req.params;
     try {
-        const avgProductionForAllSolarPanels = await ProductionDAO.reportProductionByTimeFrame(timeframe);
-        res.status(200).json({ avgProductionForAllSolarPanels });
+        const ProductionForAllSolarPanels = await ProductionDAO.reportProductionByTimeFrame(timeframe);
+        res.status(200).json(ProductionForAllSolarPanels );
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
